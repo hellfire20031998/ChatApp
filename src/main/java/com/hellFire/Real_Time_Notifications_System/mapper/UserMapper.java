@@ -5,6 +5,9 @@ import com.hellFire.Real_Time_Notifications_System.dtos.request.CreateUserReques
 import com.hellFire.Real_Time_Notifications_System.models.AppUsers;
 import org.springframework.stereotype.Component;
 
+import java.util.Collections;
+import java.util.List;
+
 @Component
 public class UserMapper {
 
@@ -21,6 +24,14 @@ public class UserMapper {
         dto.setDeleted(user.isDeleted());
 
         return dto;
+    }
+
+    public List<UserDto> toDtoList(List<AppUsers> users) {
+        if (users == null || users.isEmpty()) return Collections.emptyList();
+
+        return users.stream()
+                .map(this::toDto)
+                .toList();
     }
 
     public AppUsers toEntity(CreateUserRequest request){

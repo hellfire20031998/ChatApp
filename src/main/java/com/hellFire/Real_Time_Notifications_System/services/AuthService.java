@@ -6,10 +6,10 @@ import com.hellFire.Real_Time_Notifications_System.mapper.UserMapper;
 import com.hellFire.Real_Time_Notifications_System.models.AppUsers;
 import com.hellFire.Real_Time_Notifications_System.repositories.IUserRepository;
 import com.hellFire.Real_Time_Notifications_System.util.JwtUtil;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -52,5 +52,9 @@ public class AuthService {
         userResponse.setUser(userMapper.toDto(appUsers));
         userResponse.setToken(jwtUtil.generateToken(appUsers));
         return userResponse;
+    }
+
+    public List<AppUsers> searchUsers(String query) {
+        return repo.findByEmailContainingIgnoreCaseOrUsernameContainingIgnoreCase(query, query);
     }
 }
