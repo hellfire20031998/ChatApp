@@ -1,5 +1,6 @@
 package com.hellFire.Real_Time_Notifications_System.controller;
 
+import io.jsonwebtoken.ExpiredJwtException;
 import org.apache.coyote.BadRequestException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,7 +16,6 @@ import com.hellFire.Real_Time_Notifications_System.dtos.response.ApiResponse;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    // 🔴 Validation Errors
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiResponse<?>> handleValidationException(
             MethodArgumentNotValidException ex) {
@@ -59,5 +59,11 @@ public class GlobalExceptionHandler {
                 ApiResponse.error("INTERNAL_SERVER_ERROR", "Something went wrong"),
                 HttpStatus.INTERNAL_SERVER_ERROR
         );
+    }
+
+    @ExceptionHandler(ExpiredJwtException.class)
+    public ResponseEntity<ApiResponse<?>> handleExpiredJwt() {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(ApiResponse.error("TOKEN_EXPIRED", "Access token expired"));
     }
 }

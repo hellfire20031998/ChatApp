@@ -65,7 +65,6 @@ public class ChatService {
             }
         }
 
-        // ✅ build userMap
         Set<String> userIds = chat.getParticipantIds();
 
         Map<String, UserDto> userMap = userRepository.findAllById(userIds)
@@ -75,7 +74,6 @@ public class ChatService {
                         userMapper::toDto
                 ));
 
-        // ✅ convert to DTO
         return chatMapper.toDto(chat, currentUserId, userMap);
     }
 
@@ -83,12 +81,10 @@ public class ChatService {
 
         List<Chat> chats = chatRepository.findByParticipantIdsContaining(userId);
 
-        // ✅ collect all userIds
         Set<String> userIds = chats.stream()
                 .flatMap(chat -> chat.getParticipantIds().stream())
                 .collect(Collectors.toSet());
 
-        // ✅ fetch users once
         Map<String, UserDto> userMap = userRepository.findAllById(userIds)
                 .stream()
                 .collect(Collectors.toMap(
@@ -96,7 +92,6 @@ public class ChatService {
                         userMapper::toDto
                 ));
 
-        // ✅ map chats → DTOs
         return chats.stream()
                 .map(chat -> chatMapper.toDto(chat, userId, userMap))
                 .toList();

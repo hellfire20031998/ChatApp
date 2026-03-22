@@ -22,19 +22,19 @@ public class JwtUtil {
                 .claim("username", user.getUsername())
                 .claim("userRole", user.getUserRole())
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60))
+                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 24 * 7))
                 .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
     }
 
-    public String extractEmail(String token) {
-        return Jwts.parserBuilder()
-                .setSigningKey(key)
-                .build()
-                .parseClaimsJws(token)
-                .getBody()
-                .getSubject();
+    public String extractUserId(String token) {
+        return extractAllClaims(token).get("userId", String.class);
     }
+
+    public String extractEmail(String token) {
+        return extractAllClaims(token).getSubject();
+    }
+
     public boolean isTokenValid(String token) {
         try {
             Jwts.parserBuilder()
@@ -45,5 +45,13 @@ public class JwtUtil {
         } catch (JwtException | IllegalArgumentException e) {
             return false;
         }
+    }
+
+    private Claims extractAllClaims(String token) {
+        return Jwts.parserBuilder()
+                .setSigningKey(key)
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
     }
 }

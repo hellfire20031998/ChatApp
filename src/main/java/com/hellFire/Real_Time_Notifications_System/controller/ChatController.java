@@ -3,6 +3,7 @@ package com.hellFire.Real_Time_Notifications_System.controller;
 import com.hellFire.Real_Time_Notifications_System.dtos.ChatDto;
 import com.hellFire.Real_Time_Notifications_System.dtos.UserDto;
 import com.hellFire.Real_Time_Notifications_System.dtos.request.StartChatRequest;
+import com.hellFire.Real_Time_Notifications_System.dtos.response.AllChat;
 import com.hellFire.Real_Time_Notifications_System.dtos.response.ApiResponse;
 import com.hellFire.Real_Time_Notifications_System.models.AppUsers;
 import com.hellFire.Real_Time_Notifications_System.services.ChatService;
@@ -43,11 +44,12 @@ public class ChatController {
     }
 
     @GetMapping("my-chats")
-    public ResponseEntity<ApiResponse<List<ChatDto>>> getChats(
+    public ResponseEntity<ApiResponse<AllChat>> getChats(
             @AuthenticationPrincipal AppUsers currentUser
     ) {
         List<ChatDto> chats = chatService.getUserChats(currentUser.getId());
-
-        return ResponseEntity.ok(ApiResponse.success(chats));
+        AllChat allChat = new AllChat();
+        allChat.setAllChats(chats);
+        return ResponseEntity.ok(ApiResponse.success(allChat));
     }
 }
