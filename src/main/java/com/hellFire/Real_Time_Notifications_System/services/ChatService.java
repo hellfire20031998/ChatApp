@@ -4,10 +4,10 @@ import com.hellFire.Real_Time_Notifications_System.dtos.ChatDto;
 import com.hellFire.Real_Time_Notifications_System.dtos.UserDto;
 import com.hellFire.Real_Time_Notifications_System.mapper.ChatMapper;
 import com.hellFire.Real_Time_Notifications_System.mapper.UserMapper;
-import com.hellFire.Real_Time_Notifications_System.models.AppUsers;
 import com.hellFire.Real_Time_Notifications_System.models.Chat;
 import com.hellFire.Real_Time_Notifications_System.repositories.IChatRepository;
 import com.hellFire.Real_Time_Notifications_System.repositories.IUserRepository;
+import com.hellFire.Real_Time_Notifications_System.services.cache.UserCacheService;
 import com.mongodb.DuplicateKeyException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -27,6 +27,7 @@ public class ChatService {
     private final IUserRepository userRepository;
     private final UserMapper userMapper;
     private final ChatMapper chatMapper;
+    private final UserCacheService userCacheService;
 
 
     public List<UserDto> searchUsers(String query, String currentUserId) {
@@ -67,12 +68,7 @@ public class ChatService {
 
         Set<String> userIds = chat.getParticipantIds();
 
-        Map<String, UserDto> userMap = userRepository.findAllById(userIds)
-                .stream()
-                .collect(Collectors.toMap(
-                        AppUsers::getId,
-                        userMapper::toDto
-                ));
+        Map<String, UserDto> userMap = userCacheService.getUsersByIds(userIds);
 
         return chatMapper.toDto(chat, currentUserId, userMap);
     }
@@ -85,15 +81,12 @@ public class ChatService {
                 .flatMap(chat -> chat.getParticipantIds().stream())
                 .collect(Collectors.toSet());
 
-        Map<String, UserDto> userMap = userRepository.findAllById(userIds)
-                .stream()
-                .collect(Collectors.toMap(
-                        AppUsers::getId,
-                        userMapper::toDto
-                ));
+        Map<String, UserDto> userMap = userCacheService.getUsersByIds(userIds);
 
         return chats.stream()
                 .map(chat -> chatMapper.toDto(chat, userId, userMap))
                 .toList();
     }
+
+
 }

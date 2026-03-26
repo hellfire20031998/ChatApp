@@ -3,17 +3,25 @@ package com.hellFire.Real_Time_Notifications_System.util;
 import com.hellFire.Real_Time_Notifications_System.models.AppUsers;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
+import java.nio.charset.StandardCharsets;
 import java.util.Date;
 
 @Component
 public class JwtUtil {
 
-    private final SecretKey key = Keys.hmacShaKeyFor(
-            "hellfire-notification-system-secret-key-123456".getBytes()
-    );
+    private final SecretKey key;
+
+    public JwtUtil(@Value("${app.jwt.secret}") String jwtSecret) {
+        if (jwtSecret == null || jwtSecret.trim().isEmpty()) {
+            throw new IllegalStateException("Missing required environment variable: JWT_SECRET");
+        }
+
+        this.key = Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
+    }
 
     public String generateToken(AppUsers user) {
         return Jwts.builder()

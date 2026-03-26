@@ -2,6 +2,9 @@ package com.hellFire.Real_Time_Notifications_System.controller;
 
 import com.hellFire.Real_Time_Notifications_System.dtos.MessageDto;
 import com.hellFire.Real_Time_Notifications_System.dtos.request.ChatMessageRequest;
+import com.hellFire.Real_Time_Notifications_System.services.ChatService;
+import com.hellFire.Real_Time_Notifications_System.services.MessageService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -11,8 +14,11 @@ import java.security.Principal;
 import java.time.LocalDateTime;
 
 @Controller
+@RequiredArgsConstructor
 public class ChatWebSocketController {
 
+    private final ChatService chatService;
+    private final MessageService messageService;
     private static final String USER_MESSAGES_QUEUE = "/queue/messages";
 
     @Autowired
@@ -22,20 +28,21 @@ public class ChatWebSocketController {
     public void sendMessage(ChatMessageRequest message, Principal principal) {
 
         String sender = principal.getName();
-        String receiverId = message.getReceiverId();
 
-        MessageDto messageDto = MessageDto.builder()
-                .chatId(message.getChatId())
-                .senderId(sender)
-                .receiverId(receiverId)
-                .content(message.getContent())
-                .timeStamp(LocalDateTime.now())
-                .type(message.getType())
-                .build();
+        MessageDto savedMessage = messageService.saveAndSendMessage(message, sender);
 
-        messagingTemplate.convertAndSendToUser(receiverId, USER_MESSAGES_QUEUE, messageDto);
-        if (!sender.equals(receiverId)) {
-            messagingTemplate.convertAndSendToUser(sender, USER_MESSAGES_QUEUE, messageDto);
+        messagingTemplate.convertAndSendToUser(
+                savedMessage.getReceiverId(),
+                USER_MESSAGES_QUEUE,
+                savedMessage
+        );
+
+        if (!sender.equals(savedMessage.getReceiverId())) {
+            messagingTemplate.convertAndSendToUser(
+                    sender,
+                    USER_MESSAGES_QUEUE,
+                    savedMessage
+            );
         }
     }
 }

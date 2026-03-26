@@ -1,5 +1,6 @@
 package com.hellFire.Real_Time_Notifications_System.models;
 
+import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.data.annotation.Id;
@@ -10,6 +11,7 @@ import java.time.Instant;
 
 @Getter
 @Setter
+@Builder
 public abstract class BaseEntity {
 
     @Id
