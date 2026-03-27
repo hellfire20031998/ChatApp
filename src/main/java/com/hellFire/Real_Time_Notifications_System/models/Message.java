@@ -12,7 +12,6 @@ import java.time.LocalDateTime;
 
 @EqualsAndHashCode(callSuper = true)
 @Document(collection = "messages")
-@Builder
 @Data
 public class Message extends BaseEntity {
 

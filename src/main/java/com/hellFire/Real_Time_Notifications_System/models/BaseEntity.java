@@ -11,7 +11,6 @@ import java.time.Instant;
 
 @Getter
 @Setter
-@Builder
 public abstract class BaseEntity {
 
     @Id

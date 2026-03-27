@@ -1,5 +1,6 @@
 package com.hellFire.Real_Time_Notifications_System.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.hellFire.Real_Time_Notifications_System.models.enums.UserRole;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -17,6 +18,7 @@ public class AppUsers extends BaseEntity {
     @Indexed(unique = true)
     private String email;
 
+    @JsonIgnore
     private String password;
 
     @Indexed(unique = true)

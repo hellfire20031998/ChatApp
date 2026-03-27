@@ -2,6 +2,7 @@ package com.hellFire.Real_Time_Notifications_System.controller;
 
 import com.hellFire.Real_Time_Notifications_System.dtos.MessageDto;
 import com.hellFire.Real_Time_Notifications_System.dtos.request.UpdateMessageRequest;
+import com.hellFire.Real_Time_Notifications_System.dtos.response.AllMessagesForChat;
 import com.hellFire.Real_Time_Notifications_System.dtos.response.ApiResponse;
 import com.hellFire.Real_Time_Notifications_System.models.AppUsers;
 import com.hellFire.Real_Time_Notifications_System.services.MessageService;
@@ -34,5 +35,17 @@ public class MessageController {
     ) {
         MessageDto deletedMessage = messageService.deleteMessage(messageId, currentUser.getId());
         return ResponseEntity.ok(ApiResponse.success(deletedMessage));
+    }
+
+    @GetMapping("/{chatId}")
+    public ResponseEntity<ApiResponse<AllMessagesForChat>> getMessages(
+            @PathVariable String chatId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size,
+            @AuthenticationPrincipal AppUsers currentUser
+    ) {
+        AllMessagesForChat response = messageService.getAllMessages(chatId, page, size);
+
+        return ResponseEntity.ok(ApiResponse.success(response));
     }
 }
