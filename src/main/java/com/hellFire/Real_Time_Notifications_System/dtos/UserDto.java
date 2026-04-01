@@ -12,4 +12,5 @@ public class UserDto extends BaseEntityDto {
     private String email;
     private String username;
     private UserRole userRole;
+    private UserPreferenceDto userPreference;
 }

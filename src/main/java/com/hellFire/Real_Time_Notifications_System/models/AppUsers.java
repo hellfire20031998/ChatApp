@@ -1,6 +1,7 @@
 package com.hellFire.Real_Time_Notifications_System.models;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.hellFire.Real_Time_Notifications_System.models.UserPreference;
 import com.hellFire.Real_Time_Notifications_System.models.enums.UserRole;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -25,4 +26,5 @@ public class AppUsers extends BaseEntity {
     private String username;
 
     private UserRole userRole;
+    private UserPreference userPreference = new UserPreference();
 }

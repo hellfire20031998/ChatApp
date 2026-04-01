@@ -1,8 +1,10 @@
 package com.hellFire.Real_Time_Notifications_System.mapper;
 
 import com.hellFire.Real_Time_Notifications_System.dtos.UserDto;
+import com.hellFire.Real_Time_Notifications_System.dtos.UserPreferenceDto;
 import com.hellFire.Real_Time_Notifications_System.dtos.request.CreateUserRequest;
 import com.hellFire.Real_Time_Notifications_System.models.AppUsers;
+import com.hellFire.Real_Time_Notifications_System.models.UserPreference;
 import org.springframework.stereotype.Component;
 
 import java.util.Collections;
@@ -19,6 +21,8 @@ public class UserMapper {
         dto.setName(user.getName());
         dto.setEmail(user.getEmail());
         dto.setUsername(user.getUsername());
+        dto.setUserRole(user.getUserRole());
+        dto.setUserPreference(toPreferenceDto(user.getUserPreference()));
         dto.setCreatedAt(user.getCreatedAt());
         dto.setUpdatedAt(user.getUpdatedAt());
         dto.setDeleted(user.isDeleted());
@@ -42,7 +46,20 @@ public class UserMapper {
         user.setEmail(request.getEmail());
         user.setPassword(request.getPassword());
         user.setUsername(request.getUsername());
+        user.setUserPreference(defaultPreference());
 
         return user;
+    }
+
+    private UserPreference defaultPreference() {
+        return new UserPreference();
+    }
+
+    private UserPreferenceDto toPreferenceDto(UserPreference preference) {
+        UserPreference source = preference != null ? preference : defaultPreference();
+        UserPreferenceDto dto = new UserPreferenceDto();
+        dto.setThemeMode(source.getThemeMode());
+        dto.setThemePreset(source.getThemePreset());
+        return dto;
     }
 }
