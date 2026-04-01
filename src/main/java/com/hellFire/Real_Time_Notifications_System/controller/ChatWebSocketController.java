@@ -1,7 +1,9 @@
 package com.hellFire.Real_Time_Notifications_System.controller;
 
+import com.hellFire.Real_Time_Notifications_System.dtos.CallSignalDto;
 import com.hellFire.Real_Time_Notifications_System.dtos.MessageDto;
 import com.hellFire.Real_Time_Notifications_System.dtos.TypingEventDto;
+import com.hellFire.Real_Time_Notifications_System.dtos.request.CallSignalRequest;
 import com.hellFire.Real_Time_Notifications_System.dtos.request.ChatMessageRequest;
 import com.hellFire.Real_Time_Notifications_System.dtos.request.MessageReceiptRequest;
 import com.hellFire.Real_Time_Notifications_System.dtos.request.TypingEventRequest;
@@ -119,5 +121,37 @@ public class ChatWebSocketController {
                 messagingTemplate.convertAndSendToUser(receiverId, USER_MESSAGES_QUEUE, event);
             }
         }
+    }
+
+    @MessageMapping("/call.signal")
+    public void callSignal(CallSignalRequest request, Principal principal) {
+        String senderId = principal.getName();
+        if (request.getChatId() == null || request.getCallId() == null || request.getAction() == null) {
+            return;
+        }
+        Chat chat = chatService.getChatForUser(request.getChatId(), senderId);
+        if (chat.isGroup()) {
+            return;
+        }
+        String peerId = chat.getParticipantIds().stream()
+                .filter(id -> !id.equals(senderId))
+                .findFirst()
+                .orElse(null);
+        if (peerId == null) {
+            return;
+        }
+
+        CallSignalDto dto = CallSignalDto.builder()
+                .eventType("CALL")
+                .action(request.getAction())
+                .chatId(request.getChatId())
+                .callId(request.getCallId())
+                .mediaType(request.getMediaType())
+                .fromUserId(senderId)
+                .sdp(request.getSdp())
+                .iceCandidate(request.getIceCandidate())
+                .build();
+
+        messagingTemplate.convertAndSendToUser(peerId, USER_MESSAGES_QUEUE, dto);
     }
 }
