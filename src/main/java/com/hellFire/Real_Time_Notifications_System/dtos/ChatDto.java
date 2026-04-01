@@ -19,6 +19,10 @@ public class ChatDto extends BaseEntityDto {
 
     private List<UserDto> participants;
 
+    private String createdBy;
+    private Set<String> adminIds;
+    private boolean canManageGroup;
+
     private String lastMessage;
     private LocalDateTime lastMessageTime;
 

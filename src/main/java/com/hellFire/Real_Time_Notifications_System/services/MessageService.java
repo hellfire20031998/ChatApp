@@ -25,13 +25,13 @@ public class MessageService {
     private final IMessageRepository messageRepository;
     private final MessageMapper messageMapper;
 
-    public MessageDto saveAndSendMessage(ChatMessageRequest message, String sender) {
+    public MessageDto saveAndSendMessage(ChatMessageRequest message, String sender, String receiverId) {
 
         Message entity = new Message();
 
         entity.setChatId(message.getChatId());
         entity.setSenderId(sender);
-        entity.setReceiverId(message.getReceiverId());
+        entity.setReceiverId(receiverId);
         entity.setContent(message.getContent());
         entity.setTimeStamp(LocalDateTime.now());
         entity.setType(message.getType());

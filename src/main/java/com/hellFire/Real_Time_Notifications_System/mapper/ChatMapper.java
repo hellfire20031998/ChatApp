@@ -6,8 +6,10 @@ import com.hellFire.Real_Time_Notifications_System.models.Chat;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 @Component
 public class ChatMapper {
@@ -52,6 +54,10 @@ public class ChatMapper {
                     .toList();
 
             dto.setParticipants(participants);
+            dto.setCreatedBy(chat.getCreatedBy());
+            Set<String> adminIds = chat.getAdminIds() == null ? Set.of() : new HashSet<>(chat.getAdminIds());
+            dto.setAdminIds(adminIds);
+            dto.setCanManageGroup(adminIds.contains(currentUserId));
         }
 
         dto.setLastMessage(lastMessage);

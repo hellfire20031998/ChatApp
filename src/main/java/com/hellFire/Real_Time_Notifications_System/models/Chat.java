@@ -20,4 +20,8 @@ public class Chat extends BaseEntity {
     private boolean isGroup;
 
     private String groupName;
+
+    private String createdBy;
+
+    private Set<String> adminIds;
 }
