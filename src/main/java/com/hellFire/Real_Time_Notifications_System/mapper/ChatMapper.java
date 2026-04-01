@@ -5,6 +5,7 @@ import com.hellFire.Real_Time_Notifications_System.dtos.UserDto;
 import com.hellFire.Real_Time_Notifications_System.models.Chat;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
@@ -14,7 +15,10 @@ public class ChatMapper {
     public ChatDto toDto(
             Chat chat,
             String currentUserId,
-            Map<String, UserDto> userMap
+            Map<String, UserDto> userMap,
+            String lastMessage,
+            LocalDateTime lastMessageTime,
+            int unreadCount
     ) {
 
         if (chat == null) return null;
@@ -50,9 +54,9 @@ public class ChatMapper {
             dto.setParticipants(participants);
         }
 
-        dto.setLastMessage(null);
-        dto.setLastMessageTime(null);
-        dto.setUnreadCount(0);
+        dto.setLastMessage(lastMessage);
+        dto.setLastMessageTime(lastMessageTime);
+        dto.setUnreadCount(unreadCount);
 
         return dto;
     }

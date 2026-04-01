@@ -5,7 +5,10 @@ import com.hellFire.Real_Time_Notifications_System.dtos.UserDto;
 import com.hellFire.Real_Time_Notifications_System.mapper.ChatMapper;
 import com.hellFire.Real_Time_Notifications_System.mapper.UserMapper;
 import com.hellFire.Real_Time_Notifications_System.models.Chat;
+import com.hellFire.Real_Time_Notifications_System.models.Message;
+import com.hellFire.Real_Time_Notifications_System.models.enums.MessageStatus;
 import com.hellFire.Real_Time_Notifications_System.repositories.IChatRepository;
+import com.hellFire.Real_Time_Notifications_System.repositories.IMessageRepository;
 import com.hellFire.Real_Time_Notifications_System.repositories.IUserRepository;
 import com.hellFire.Real_Time_Notifications_System.services.cache.UserCacheService;
 import com.mongodb.DuplicateKeyException;
@@ -28,6 +31,7 @@ public class ChatService {
     private final UserMapper userMapper;
     private final ChatMapper chatMapper;
     private final UserCacheService userCacheService;
+    private final IMessageRepository messageRepository;
 
 
     public List<UserDto> searchUsers(String query, String currentUserId) {
@@ -70,7 +74,14 @@ public class ChatService {
 
         Map<String, UserDto> userMap = userCacheService.getUsersByIds(userIds);
 
-        return chatMapper.toDto(chat, currentUserId, userMap);
+        Message last = messageRepository.findTopByChatIdOrderByTimeStampDesc(chat.getId());
+        String lastMessage = null;
+        java.time.LocalDateTime lastMessageTime = null;
+        if (last != null) {
+            lastMessage = last.isDeleted() ? "Message deleted" : last.getContent();
+            lastMessageTime = last.getTimeStamp();
+        }
+        return chatMapper.toDto(chat, currentUserId, userMap, lastMessage, lastMessageTime, 0);
     }
 
     public List<ChatDto> getUserChats(String userId) {
@@ -84,7 +95,36 @@ public class ChatService {
         Map<String, UserDto> userMap = userCacheService.getUsersByIds(userIds);
 
         return chats.stream()
-                .map(chat -> chatMapper.toDto(chat, userId, userMap))
+                .map(chat -> {
+                    Message last = messageRepository.findTopByChatIdOrderByTimeStampDesc(chat.getId());
+                    String lastMessage = null;
+                    java.time.LocalDateTime lastMessageTime = null;
+                    if (last != null) {
+                        lastMessage = last.isDeleted() ? "Message deleted" : last.getContent();
+                        lastMessageTime = last.getTimeStamp();
+                    }
+                    long unread = messageRepository.countByChatIdAndReceiverIdAndStatusNotAndDeletedFalse(
+                            chat.getId(),
+                            userId,
+                            MessageStatus.READ
+                    );
+                    return chatMapper.toDto(
+                            chat,
+                            userId,
+                            userMap,
+                            lastMessage,
+                            lastMessageTime,
+                            (int) unread
+                    );
+                })
+                .sorted((a, b) -> {
+                    java.time.LocalDateTime ta = a.getLastMessageTime();
+                    java.time.LocalDateTime tb = b.getLastMessageTime();
+                    if (ta == null && tb == null) return 0;
+                    if (ta == null) return 1;
+                    if (tb == null) return -1;
+                    return tb.compareTo(ta);
+                })
                 .toList();
     }
 

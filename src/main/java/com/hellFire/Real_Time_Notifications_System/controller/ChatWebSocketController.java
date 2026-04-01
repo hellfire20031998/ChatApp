@@ -1,8 +1,10 @@
 package com.hellFire.Real_Time_Notifications_System.controller;
 
 import com.hellFire.Real_Time_Notifications_System.dtos.MessageDto;
+import com.hellFire.Real_Time_Notifications_System.dtos.TypingEventDto;
 import com.hellFire.Real_Time_Notifications_System.dtos.request.ChatMessageRequest;
 import com.hellFire.Real_Time_Notifications_System.dtos.request.MessageReceiptRequest;
+import com.hellFire.Real_Time_Notifications_System.dtos.request.TypingEventRequest;
 import com.hellFire.Real_Time_Notifications_System.services.MessageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -63,5 +65,18 @@ public class ChatWebSocketController {
         if (!updated.getSenderId().equals(updated.getReceiverId())) {
             messagingTemplate.convertAndSendToUser(updated.getReceiverId(), USER_MESSAGES_QUEUE, updated);
         }
+    }
+
+    @MessageMapping("/chat.typing")
+    public void typing(TypingEventRequest request, Principal principal) {
+        String sender = principal.getName();
+        TypingEventDto event = TypingEventDto.builder()
+                .eventType("TYPING")
+                .chatId(request.getChatId())
+                .senderId(sender)
+                .receiverId(request.getReceiverId())
+                .typing(request.isTyping())
+                .build();
+        messagingTemplate.convertAndSendToUser(request.getReceiverId(), USER_MESSAGES_QUEUE, event);
     }
 }
