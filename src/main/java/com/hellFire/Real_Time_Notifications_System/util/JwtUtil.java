@@ -13,6 +13,12 @@ import java.util.Date;
 @Component
 public class JwtUtil {
 
+    public enum JwtValidationStatus {
+        VALID,
+        EXPIRED,
+        INVALID
+    }
+
     private final SecretKey key;
 
     public JwtUtil(@Value("${app.jwt.secret}") String jwtSecret) {
@@ -43,16 +49,29 @@ public class JwtUtil {
         return extractAllClaims(token).getSubject();
     }
 
-    public boolean isTokenValid(String token) {
+    /**
+     * Distinguishes expired vs other invalid tokens so HTTP filters can return {@code TOKEN_EXPIRED}
+     * for the client session-refresh flow.
+     */
+    public JwtValidationStatus classifyToken(String token) {
+        if (token == null || token.isBlank()) {
+            return JwtValidationStatus.INVALID;
+        }
         try {
             Jwts.parserBuilder()
                     .setSigningKey(key)
                     .build()
                     .parseClaimsJws(token);
-            return true;
+            return JwtValidationStatus.VALID;
+        } catch (ExpiredJwtException e) {
+            return JwtValidationStatus.EXPIRED;
         } catch (JwtException | IllegalArgumentException e) {
-            return false;
+            return JwtValidationStatus.INVALID;
         }
+    }
+
+    public boolean isTokenValid(String token) {
+        return classifyToken(token) == JwtValidationStatus.VALID;
     }
 
     private Claims extractAllClaims(String token) {
