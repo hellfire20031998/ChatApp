@@ -56,6 +56,32 @@ public class MessageService {
         return messageMapper.toDto(saved);
     }
 
+    public MessageDto markDelivered(String messageId, String receiverId) {
+        Message message = messageRepository.findById(messageId)
+                .orElseThrow(() -> new RuntimeException("Message not found"));
+        if (!receiverId.equals(message.getReceiverId())) {
+            throw new RuntimeException("Only receiver can acknowledge delivery");
+        }
+        if (message.getStatus() == MessageStatus.SENT) {
+            message.setStatus(MessageStatus.DELIVERED);
+            message = messageRepository.save(message);
+        }
+        return messageMapper.toDto(message);
+    }
+
+    public MessageDto markRead(String messageId, String receiverId) {
+        Message message = messageRepository.findById(messageId)
+                .orElseThrow(() -> new RuntimeException("Message not found"));
+        if (!receiverId.equals(message.getReceiverId())) {
+            throw new RuntimeException("Only receiver can acknowledge read");
+        }
+        if (message.getStatus() != MessageStatus.READ) {
+            message.setStatus(MessageStatus.READ);
+            message = messageRepository.save(message);
+        }
+        return messageMapper.toDto(message);
+    }
+
     private Message getAuthorizedMessage(String messageId, String requesterId) {
         Message message = messageRepository.findById(messageId)
                 .orElseThrow(() -> new RuntimeException("Message not found"));

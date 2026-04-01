@@ -2,7 +2,7 @@ package com.hellFire.Real_Time_Notifications_System.controller;
 
 import com.hellFire.Real_Time_Notifications_System.dtos.MessageDto;
 import com.hellFire.Real_Time_Notifications_System.dtos.request.ChatMessageRequest;
-import com.hellFire.Real_Time_Notifications_System.services.ChatService;
+import com.hellFire.Real_Time_Notifications_System.dtos.request.MessageReceiptRequest;
 import com.hellFire.Real_Time_Notifications_System.services.MessageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,7 +17,6 @@ import java.time.LocalDateTime;
 @RequiredArgsConstructor
 public class ChatWebSocketController {
 
-    private final ChatService chatService;
     private final MessageService messageService;
     private static final String USER_MESSAGES_QUEUE = "/queue/messages";
 
@@ -43,6 +42,26 @@ public class ChatWebSocketController {
                     USER_MESSAGES_QUEUE,
                     savedMessage
             );
+        }
+    }
+
+    @MessageMapping("/chat.delivered")
+    public void markDelivered(MessageReceiptRequest request, Principal principal) {
+        String receiverId = principal.getName();
+        MessageDto updated = messageService.markDelivered(request.getMessageId(), receiverId);
+        messagingTemplate.convertAndSendToUser(updated.getSenderId(), USER_MESSAGES_QUEUE, updated);
+        if (!updated.getSenderId().equals(updated.getReceiverId())) {
+            messagingTemplate.convertAndSendToUser(updated.getReceiverId(), USER_MESSAGES_QUEUE, updated);
+        }
+    }
+
+    @MessageMapping("/chat.read")
+    public void markRead(MessageReceiptRequest request, Principal principal) {
+        String receiverId = principal.getName();
+        MessageDto updated = messageService.markRead(request.getMessageId(), receiverId);
+        messagingTemplate.convertAndSendToUser(updated.getSenderId(), USER_MESSAGES_QUEUE, updated);
+        if (!updated.getSenderId().equals(updated.getReceiverId())) {
+            messagingTemplate.convertAndSendToUser(updated.getReceiverId(), USER_MESSAGES_QUEUE, updated);
         }
     }
 }
