@@ -1,5 +1,6 @@
 package com.hellFire.Real_Time_Notifications_System.controller;
 
+import com.hellFire.Real_Time_Notifications_System.exceptions.AppException;
 import io.jsonwebtoken.ExpiredJwtException;
 import org.apache.coyote.BadRequestException;
 import org.springframework.http.HttpStatus;
@@ -15,6 +16,14 @@ import com.hellFire.Real_Time_Notifications_System.dtos.response.ApiResponse;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    @ExceptionHandler(AppException.class)
+    public ResponseEntity<ApiResponse<?>> handleAppException(AppException ex) {
+        return new ResponseEntity<>(
+                ApiResponse.error(ex.getErrorCode(), ex.getMessage()),
+                HttpStatus.BAD_REQUEST
+        );
+    }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiResponse<?>> handleValidationException(

@@ -25,6 +25,10 @@ public class AppUsers extends BaseEntity {
     @Indexed(unique = true)
     private String username;
 
+    private boolean emailVerified = false;
+
+    private java.time.Instant emailVerifiedAt;
+
     private UserRole userRole;
     private UserPreference userPreference = new UserPreference();
 }
