@@ -22,8 +22,12 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<ApiResponse<String>> register(@Valid @RequestBody CreateUserRequest request) {
-        return ResponseEntity.ok(ApiResponse.success(service.register(request)));
+    public ResponseEntity<ApiResponse<UserResponse>> register(@Valid @RequestBody CreateUserRequest request) {
+        UserResponse body = service.register(request);
+        String message = body.getToken() == null
+                ? "Account created. Please verify your email before login."
+                : "Success";
+        return ResponseEntity.ok(ApiResponse.success(body, message));
     }
 
     @PostMapping("/login")

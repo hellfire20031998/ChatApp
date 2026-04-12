@@ -34,6 +34,7 @@ public class AuthService {
     private final UserMapper userMapper;
     private final EmailService emailService;
     private final String clientBaseUrl;
+    private final boolean requireEmailVerification;
 
     public AuthService(
             IUserRepository repo,
@@ -42,7 +43,8 @@ public class AuthService {
             PasswordEncoder encoder,
             UserMapper userMapper,
             EmailService emailService,
-            @Value("${app.client.base-url:http://localhost:3000}") String clientBaseUrl
+            @Value("${app.client.base-url:http://localhost:3000}") String clientBaseUrl,
+            @Value("${app.auth.require-email-verification:true}") boolean requireEmailVerification
     ) {
         this.repo = repo;
         this.emailVerificationTokenRepository = emailVerificationTokenRepository;
@@ -51,9 +53,10 @@ public class AuthService {
         this.userMapper = userMapper;
         this.emailService = emailService;
         this.clientBaseUrl = clientBaseUrl;
+        this.requireEmailVerification = requireEmailVerification;
     }
 
-    public String register(CreateUserRequest request) {
+    public UserResponse register(CreateUserRequest request) {
         Optional<AppUsers> appUsersOptional = repo.findByUsername(request.getUsername());
         if (appUsersOptional.isPresent()){
             throw new AppException("USERNAME_TAKEN", "Username already taken");
@@ -63,9 +66,19 @@ public class AuthService {
         }
         request.setPassword(encoder.encode(request.getPassword()));
         AppUsers user = repo.save(userMapper.toEntity(request));
-        createAndSendVerification(user);
 
-        return "Account created. Please verify your email before login.";
+        if (requireEmailVerification) {
+            createAndSendVerification(user);
+            UserResponse pending = new UserResponse();
+            pending.setUser(userMapper.toDto(user));
+            pending.setToken(null);
+            return pending;
+        }
+
+        user.setEmailVerified(true);
+        user.setEmailVerifiedAt(Instant.now());
+        repo.save(user);
+        return createUserResponse(user);
     }
 
     public UserResponse login(String email, String password) {
@@ -75,7 +88,7 @@ public class AuthService {
         if (!encoder.matches(password, user.getPassword())) {
             throw new AppException("INVALID_CREDENTIALS", "Invalid credentials");
         }
-        if (!user.isEmailVerified()) {
+        if (requireEmailVerification && !user.isEmailVerified()) {
             throw new AppException("EMAIL_NOT_VERIFIED", "Please verify your email before login");
         }
         return createUserResponse(user);
