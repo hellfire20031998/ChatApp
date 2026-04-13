@@ -20,7 +20,7 @@ public class EmailVerificationToken {
     @Indexed(unique = true)
     private String tokenHash;
 
-    @Indexed(expireAfterSeconds = 0)
+    @Indexed(expireAfter = "0s")
     private Instant expiresAt;
 
     private Instant usedAt;
